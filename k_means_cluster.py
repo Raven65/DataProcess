@@ -9,11 +9,16 @@ import pandas as pd
 from sklearn.cluster import KMeans
 
 name = "cpu"
-structured_data = read_structured_data(name)
+flag = 0
+norm_flag = False
 
-x = get_feature(structured_data, 1)
-x_norm = (x - x.min()) / (x.max() - x.min())
-#x_norm = x
+structured_data = read_structured_data(name)
+x = get_feature(structured_data, flag)
+if norm_flag:
+	x_norm = (x - x.min()) / (x.max() - x.min())
+else:
+	x_norm = x
+pd.set_option('display.max_columns', None)
 print(x_norm)
 lost = []
 for k in range(2, 20):
@@ -22,13 +27,15 @@ for k in range(2, 20):
 	lost.append(estimator.inertia_)
 plt.plot(range(2, 20), lost)
 plt.show()
-
-estimator = KMeans(n_clusters=5)  # 构造聚类器
+estimator = KMeans(n_clusters=4)  # 构造聚类器
 estimator.fit(x_norm)  # 聚类
 label_pred = estimator.labels_  # 获取聚类标签
 lost.append(estimator.inertia_)
 res = pd.DataFrame(index=structured_data.keys(), columns=['label'], data=label_pred)
-res.to_csv('result/' + name + '_label.csv', encoding='utf-8')
+if norm_flag:
+	res.to_csv('result/' + name + '_norm_label' + str(flag) + '.csv', encoding='utf-8')
+else:
+	res.to_csv('result/' + name + '_label' + str(flag) + '.csv', encoding='utf-8')
 print(res)
 
-#TODO:不同硬盘index咋办
+# TODO:不同硬盘index咋办

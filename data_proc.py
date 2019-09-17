@@ -16,12 +16,7 @@ def read_structured_data(name: str):
 		df2 = df.loc[df['object_id'] == oi]
 		index = df2['disk_index'].drop_duplicates().tolist()
 		data_idx = {}
-		if name == "memoryUsed":
-			dff2 = dff.loc[dff['object_id'] == oi]
-			if len(dff2):
-				data_idx['total'] = dff2['value'].values[0]
-			else:
-				data_idx['total'] = -1
+
 		for idx in index:
 			idx_value = df2.loc[df2['disk_index'] == idx]
 			value = idx_value['value'].drop_duplicates().tolist()
@@ -31,6 +26,13 @@ def read_structured_data(name: str):
 			data_idx[key] = []
 			for i in range(len(value) // 24):
 				data_idx[key].append(value[i * 24:i * 24 + 24])
+		if name == "memoryUsed":
+			if data_idx:
+				dff2 = dff.loc[dff['object_id'] == oi]
+				if len(dff2):
+					data_idx['total'] = dff2['value'].values[0]
+				else:
+					data_idx = {}
 		if data_idx:
 			data[oi] = data_idx
 
@@ -65,12 +67,20 @@ def time_feature(data, p1, p2):
 	return featuretime_list
 
 
+feature_size = 8
+
+
 # 0表示提取范围为全部时间段，1为用每小时平均值
 def get_feature(s_data, flag):
 	feature = []
 	for key in s_data:
-		proc_data = []
+		tmp = []
 		for disk_index in s_data[key]:
+			proc_data = []
+			feature_tmp = []
+			if disk_index == "total":
+				feature_tmp.append(s_data[key][disk_index])
+				continue
 			total_data = s_data[key][disk_index]
 			if flag == 0:
 				raw_data = np.array([])
@@ -84,8 +94,12 @@ def get_feature(s_data, flag):
 				raw_data = np.delete(raw_data, 0, axis=0)
 				proc_data = np.mean(raw_data, axis=0)
 
-		df = pd.Series(proc_data)
-		feature.append(time_feature(df, 0, len(proc_data) - 1))
+			df = pd.Series(proc_data)
+			feature_tmp += time_feature(df, 0, len(proc_data) - 1)
+			tmp.append(feature_tmp)
+		tmp = np.array(tmp)
+		tmp = np.mean(tmp, axis=0)
+		feature.append(tmp.tolist())
 
 	train = pd.DataFrame(data=feature, index=s_data.keys())
 	return train
