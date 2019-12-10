@@ -34,12 +34,17 @@ def process_raw_data(name: str):
 		newDf = newDf.drop_duplicates()
 	newDf.to_csv('data/' + name + '.csv', encoding='utf-8')
 
-
+def process_raw_data1(name: str):
+	df = pd.read_excel("./rawData/" + name + "/" + name + "(half_minute).xls")
+	del df['item_name']
+	df.rename(columns={'item_value': 'value', 'index': 'disk_index'}, inplace=True)
+	df.to_csv('data/' + name + '_half_minute.csv', encoding='utf-8')
 if __name__ == '__main__':
-	process_raw_data("cpu")
-	process_raw_data("diskIoWriteLatency")
-	process_raw_data("memoryUsed")
-	process_raw_data("memoryTotal")
-	process_raw_data("ioWait")
-	process_raw_data("netReceived")
-	process_raw_data("netTransmitted")
+	# process_raw_data("cpu")
+	# process_raw_data("diskIoWriteLatency")
+	# process_raw_data("memoryUsed")
+	# process_raw_data("memoryTotal")
+	# process_raw_data("ioWait")
+	# process_raw_data("netReceived")
+	# process_raw_data("netTransmitted")
+	process_raw_data1("cpu")
